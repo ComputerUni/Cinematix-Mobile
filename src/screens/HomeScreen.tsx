@@ -6,7 +6,7 @@ import {
   View,
   Text,
 } from "react-native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Colors } from "../theme/colors";
 import { s, vs } from "react-native-size-matters";
@@ -22,26 +22,86 @@ export default function HomeScreen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const handleSearch = async () => {
-    setLoading(true);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+
+  const fetchMovies = async (pageNum: number, isNewSearch = false) => {
+    if (!searchQuery.trim()) {
+      setMovies([]);
+      setHasMore(false);
+      return;
+    }
+
+    if (isNewSearch) setLoading(true);
+
     setError("");
 
     try {
-      const res = await searchMovies(searchQuery);
+      const res = await searchMovies(searchQuery, pageNum);
       if (res?.Response?.toLowerCase() === "true") {
         const incomingMovies = res.Search || [];
-        setMovies(incomingMovies);
+
+        setHasMore(incomingMovies.length === 10);
+
+        //Bu kısımda aynı filmden birden fazla gelmesini engelleyerek her filmden bir adet göstermeyi sağlarız.
+        setMovies((prev) => {
+          const baseList =
+            pageNum === 1 ? incomingMovies : [...prev, ...incomingMovies];
+          const seenIds = new Set<string>();
+          const uniqueMovies = baseList.filter((movie: OmdbSearchItem) => {
+            if (seenIds.has(movie.imdbID)) {
+              return false;
+            }
+            seenIds.add(movie.imdbID);
+            return true;
+          });
+          return uniqueMovies;
+        });
       } else {
-        setMovies([]);
-        setError(res?.Error || "No movies found");
+        if (pageNum === 1) {
+          setMovies([]);
+          setError(res?.Error || "No movies found");
+        }
+        setHasMore(false);
       }
     } catch (error) {
-      setError("Something went wrong while searching for movies.");
-      setMovies([]);
+      if (pageNum === 1) {
+        setMovies([]);
+        setError("Something went wrong while searching for movies.");
+      }
     } finally {
-      setLoading(false);
+      if (isNewSearch) setLoading(false);
     }
   };
+
+  const handleSearch = async () => {
+    setPage(1);
+    setMovies([]);
+    setHasMore(true);
+    fetchMovies(1, true);
+  };
+
+  const loadMoreMovies = async () => {
+    if (!hasMore || loading || loadingMore) return;
+    setLoadingMore(true);
+    const nextPage = page + 1;
+    try {
+      await fetchMovies(nextPage, false);
+      setPage(nextPage);
+    } finally {
+      setLoadingMore(false);
+    }
+  };
+
+  useEffect(() => {
+    if (searchQuery.trim() === "") {
+      setMovies([]);
+      setError("");
+      return;
+    }
+    handleSearch();
+  }, []);
 
   return (
     <SafeAreaView style={styles.container} edges={[]}>
@@ -92,9 +152,28 @@ export default function HomeScreen() {
         <FlatList
           data={movies}
           renderItem={({ item }) => <MovieCard movie={item} />}
-          keyExtractor={(item) => item.imdbID}
-          key={`movies-${movies.length}`}
+          keyExtractor={(item, index) => `${item.imdbID}-${index}`}
           numColumns={2}
+          onEndReached={loadMoreMovies}
+          onEndReachedThreshold={0.3}
+          ListFooterComponent={
+            loadingMore ? (
+              <View style={styles.footerContainer}>
+                <LottieView
+                  source={require("../../assets/animations/chip-loader.json")}
+                  autoPlay
+                  loop
+                  style={styles.chipsAnimation}
+                />
+              </View>
+            ) : !hasMore && movies.length > 0 ? (
+              <View style={styles.footerContainer}>
+                <Text style={styles.footerText}>
+                  {"You've seen all movies"}
+                </Text>
+              </View>
+            ) : undefined
+          }
         />
       )}
     </SafeAreaView>
@@ -154,5 +233,20 @@ const styles = StyleSheet.create({
     textAlign: "center",
     margin: s(7),
     fontWeight: "bold",
+  },
+
+  footerContainer: {
+    paddingVertical: vs(10),
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  chipsAnimation: {
+    width: s(40),
+    height: s(40),
+  },
+  footerText: {
+    textAlign: "center",
+    fontWeight: "bold",
+    color: Colors.accent,
   },
 });
