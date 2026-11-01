@@ -22,6 +22,7 @@ export default function BottomTabs() {
         headerTitleStyle: {
           color: Colors.textPrimary,
           fontWeight: "bold",
+          fontSize: s(20),
         },
         tabBarStyle: {
           backgroundColor: Colors.card,
@@ -34,7 +35,7 @@ export default function BottomTabs() {
       }}
     >
       <Tab.Screen
-        name="Anasayfa"
+        name="Home"
         component={HomeScreen}
         options={{
           tabBarIcon: ({ color }) => (
@@ -43,7 +44,7 @@ export default function BottomTabs() {
         }}
       />
       <Tab.Screen
-        name="Kategoriler"
+        name="Categories"
         component={HomeScreen}
         options={{
           tabBarIcon: ({ color }) => (
@@ -52,7 +53,7 @@ export default function BottomTabs() {
         }}
       />
       <Tab.Screen
-        name="Kaydedilenler"
+        name="Saved"
         component={HomeScreen}
         options={{
           tabBarIcon: ({ color }) => (
