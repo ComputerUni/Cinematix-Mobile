@@ -6,6 +6,7 @@ import Feather from "@expo/vector-icons/Feather";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { s } from "react-native-size-matters";
 import { Colors } from "../theme/colors";
+import CategoriesScreen from "../screens/CategoriesScreen";
 
 const Tab = createBottomTabNavigator();
 
@@ -45,7 +46,7 @@ export default function BottomTabs() {
       />
       <Tab.Screen
         name="Categories"
-        component={HomeScreen}
+        component={CategoriesScreen}
         options={{
           tabBarIcon: ({ color }) => (
             <Ionicons name="albums-outline" size={s(20)} color={color} />
