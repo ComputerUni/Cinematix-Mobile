@@ -15,6 +15,7 @@ import searchMovies, { OmdbSearchItem } from "../api/omdb";
 import MovieCard from "../components/MovieCard";
 import LottieView from "lottie-react-native";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import CustomLoading from "../components/CustomLoading";
 
 export default function HomeScreen() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -131,14 +132,7 @@ export default function HomeScreen() {
       </View>
 
       {loading ? (
-        <View style={styles.loadingContainer}>
-          <LottieView
-            source={require("../../assets/animations/dice-loader.json")}
-            autoPlay
-            loop
-            style={styles.lottieAnimation}
-          />
-        </View>
+        <CustomLoading />
       ) : error ? (
         <View style={styles.errorContainer}>
           <MaterialIcons

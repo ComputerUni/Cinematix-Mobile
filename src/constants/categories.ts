@@ -7,8 +7,7 @@ const CATEGORIES = [
     {key: "comedy", label:"Comedy", query: "comedy"},
     {key: "romance", label:"Romance", query: "romance"},
     {key: "thriller", label:"Thriller", query: "thriller"},
-    {key: "animation", label:"Popular", query: "marvel"},
-    {key: "popular", label:"Animation", query: "animation"},
+    {key: "animation", label:"Animation", query: "animation"},
     {key: "horror", label:"Horror", query: "horror"},
 ]
 
